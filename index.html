@@ -19,7 +19,7 @@
   <div class="board" id="board">
     <header>
       <h1>Tic Tac Toe</h1>
-      <ul>
+      <ul id="players-list">
         <li class="players" id="player1">
           <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-200.000000, -60.000000)" fill="#000000"><g transform="translate(200.000000, 60.000000)"><path d="M21 36.6L21 36.6C29.6 36.6 36.6 29.6 36.6 21 36.6 12.4 29.6 5.4 21 5.4 12.4 5.4 5.4 12.4 5.4 21 5.4 29.6 12.4 36.6 21 36.6L21 36.6ZM21 42L21 42C9.4 42 0 32.6 0 21 0 9.4 9.4 0 21 0 32.6 0 42 9.4 42 21 42 32.6 32.6 42 21 42L21 42Z"/></g></g></g></svg>
         </li>
@@ -43,14 +43,71 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script>
-    
+
+
+    /*
+      1,2,3 - horizontal win
+      1..2..3 - vertical win
+      1...2...3 - diaginal win 1
+      1.2.3 - diaginal win 2
+    */
+      
+
+    //-- autoCoinToss() - (private) randomly pick a starting player
+    function autoCoinToss() {
+      /*
+      var x;
+      x ^= 1;
+      console.log(x);
+      x ^= 1;
+      */
+      return Math.floor((Math.random() * 2));
+
+    }
+
+
+    var splashScreen = false; 
+    var int_activePlayerBinary = autoCoinToss();
+    var int_activePlayerIdNumber = ( int_activePlayerBinary + 1 ); // @teamtreehouse why not use 0 or 1 for player ID?  All around more efficient?
+    var obj_activePlayer = $('#player'+ int_activePlayerIdNumber ).toggleClass('active'); 
+
+
+
+
+
+    function changePlayer() {
+      $(obj_activePlayer).toggleClass('active');
+      int_activePlayerBinary ^= 1;
+      int_activePlayerIdNumber = ( int_activePlayerBinary + 1 );
+      obj_activePlayer = $('#player'+ int_activePlayerIdNumber ).toggleClass('active'); 
+    }
+
+
+
+
+
     // ON LOAD 
-    $('.button').click(function() {
-      $('#start').fadeOut("slow", function(){
-        $("#board").fadeIn("slow");
-      })
-    });
+    if(splashScreen === true) {
+      $('.button').click(function() {
+        $('#start').fadeOut("slow", function(){
+          $("#board").fadeIn("slow");
+        })
+      });
+    } else {
+      $('#start').hide();
+      $("#board").show();
+    }
     
+
+
+    $('.boxes').click(function(e) {
+      var int_Active = parseInt( $('#players-list > .active').attr('id').slice(-1) );
+      $(e.target).addClass('box-filled-'+int_Active);
+      changePlayer();
+    });
+
+
+
   </script>
 </body>
 </html>
