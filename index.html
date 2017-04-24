@@ -71,10 +71,6 @@
     var int_activePlayerIdNumber = ( int_activePlayerBinary + 1 ); // @teamtreehouse why not use 0 or 1 for player ID?  All around more efficient?
     var obj_activePlayer = $('#player'+ int_activePlayerIdNumber ).toggleClass('active'); 
 
-
-
-
-
     function changePlayer() {
       $(obj_activePlayer).toggleClass('active');
       int_activePlayerBinary ^= 1;
@@ -83,6 +79,139 @@
     }
 
 
+    function validateRow(element, player) {
+      var row = 0;
+      if($(element).hasClass('box-filled-'+player)) {
+          ++row; 
+          if(row === 3) {
+            return true
+          }
+        } else {
+          return false;
+        }
+    }
+
+
+    function validate(e, player) {
+
+      var playerName;
+      var isReset = false;
+
+      var score = {
+
+        isvalid:false,
+        rules:[
+          {
+            type: 'row',
+            counted: {
+              selected: 0,
+              space: 0,
+              block: 0
+            },
+            spaces: 0,
+            blocks: 3,
+            valid: false
+          },
+          {
+            type: 'column',
+            counted:{
+              selected:0,
+              space:0,
+              block: 0
+            },
+            spaces:2,
+            blocks: 0,
+            valid: false
+          },
+          {
+            type: 'diagonal-left',
+            counted:{
+              selected:0,
+              space:0,
+              block: 0
+            },
+            spaces:1,
+            blocks: 0,
+            valid: false
+          },
+          {
+            type:'diagonal-right',
+            counted: {
+              selected:0,
+              space:0,
+              block: 0
+            },
+            spaces:3,
+            blocks: 0,
+            valid:false
+          }
+        ]
+      }
+
+
+
+      console.group();
+      var boxes = $(e.currentTarget).find('.box').each(function( index, element ) {
+
+        console.group(index);
+        for (var i = 0, len = score.rules.length; i < len; i++) {
+            
+          if($(element).hasClass('box-filled-'+player)) {
+
+            if(player == 2) {
+              playerName = 'x';
+            } else {
+              playerName = 'o';
+            }
+
+            ++score.rules[i].counted.selected; 
+
+
+            if( (score.rules[i].counted.selected === 3) && (score.rules[i].spaces === score.rules[i].counted.space)) {
+              console.log('WIN!');
+              console.groupEnd()
+              console.groupEnd()
+              return false
+            }
+            
+            score.rules[i].counted.space = 0;
+            
+            console.log('%c'+playerName+' rule-'+i+':  '+' selected:'+score.rules[i].counted.selected+', space:'+score.rules[i].counted.space+', spaces:'+score.rules[i].spaces+ ', type:'+score.rules[i].type, 'background: green; color: white; display: block;');
+          } else {
+
+            ++score.rules[i].counted.space;
+
+            if(element.className.indexOf('box-filled-') > -1) {
+              if(player == 2) {
+                playerName = 'o';
+              } else {
+                playerName = 'x';
+              }
+            } else {
+              playerName = '-';
+            }
+
+            if(score.rules[i].counted.space > score.rules[i].spaces ) {
+              isReset = true;
+              score.rules[i].counted.selected = 0;
+              score.rules[i].counted.space = 0;
+            }
+
+            console.log(playerName+' rule-'+i+':  '+' selected:'+score.rules[i].counted.selected+', space:'+score.rules[i].counted.space+', spaces:'+score.rules[i].spaces+', type:'+score.rules[i].type+ ', reset:'+isReset );
+
+            isReset = false;
+
+          }
+
+        } 
+        console.groupEnd()
+
+      });
+      console.groupEnd()
+
+      //console.log(score); 
+
+    }
 
 
 
@@ -101,9 +230,16 @@
 
 
     $('.boxes').click(function(e) {
-      var int_Active = parseInt( $('#players-list > .active').attr('id').slice(-1) );
-      $(e.target).addClass('box-filled-'+int_Active);
-      changePlayer();
+      
+      console.log();
+      
+      if(e.target.className.indexOf('box-filled') === -1) {
+        var int_Active = parseInt( $('#players-list > .active').attr('id').slice(-1) );
+        $(e.target).addClass('box-filled-'+int_Active);
+        validate(e, int_activePlayerIdNumber);
+        changePlayer();
+      }
+      
     });
 
 
