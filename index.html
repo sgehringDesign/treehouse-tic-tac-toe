@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Tic Tac Toe</title>
-  <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+  <!--link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'-->
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -32,9 +32,11 @@
       <li class="box"></li>
       <li class="box"></li>
       <li class="box"></li>
+      
       <li class="box"></li>
       <li class="box"></li>
       <li class="box"></li>
+      
       <li class="box"></li>
       <li class="box"></li> 
       <li class="box"></li>
@@ -42,207 +44,426 @@
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
   <script>
 
 
-    /*
-      1,2,3 - horizontal win
-      1..2..3 - vertical win
-      1...2...3 - diaginal win 1
-      1.2.3 - diaginal win 2
-    */
+
+
+  !function(root) {
+
+    function Player(name) {
+
+      this.name = name;
+
+      var _ = {}
+      _.binary = parseInt(this.name.charCodeAt(0).toString(2)[2]);
+      _.id = _.binary + 1;
+      _.element = $('#player'+ _.id);
+      _.winner = false;
+      _.score = 0;
+
+      this.get = function(name) {
+        return  _[name];
+      }
+
+      this.addScore = function() {
+        _.score++;
+      }
+
+      this.subtractScore = function() {
+        _.score--;
+      }
+
+      this.setWinner = function() {
+        _.winner = true
+      }
+
+    }
+
+
+    function Rule(type, options) {
+      
+      this.type = type;
+
+      var _ = {}
+      _.valid = false;
+      _.space = 0;
+      _.count = 0;
+      _.length = 0;
+      _.increment = 1;
+      _.score = 0;
+      _.total = 0;
+      _.start = 0;
+
+      _.merge = function (options){
+        for (var attrname in options) { 
+          this[attrname] = options[attrname];
+        }
+      }
+
+      _.merge(options);
+
+      this.get = function(name) {
+        return  _[name];
+      }
+
+      this.validate = function(boxes , current) {
+
+        console.log(_);
+        
+        for(var i=_.start, len=_.length; i <= len; i = i + _.increment){
+          for(var j = 0; j < 3 ; j++) {
+            console.groupCollapsed(j);
+            console.log(boxes[(i + _.count)]);
+
+            if($(boxes[(i + _.count)]).hasClass('box-filled-'+current)) {
+              _.score = _.score + 1;
+               console.log('_.score: '+_.score);
+               console.log('_.count: '+_.count);
+               console.log('_.count: '+_.total);
+            }
+
+            if( _.score === 3 &&  _.count === _.total) {
+              console.log('WIN!');
+              return true;
+            }
+
+            _.count = _.count + _.space;
+            console.groupEnd();
+
+          }
+          _.score = 0;
+          _.count = 0;
+        }
+        
+        console.log(_);
+        console.log(_.score);
+        
+         _.score = 0;
+         
+         return false
+      }
+
+    }
+
+
+    function Board(players) {
+      var self = this;
+
+      var _ = {}
+      _.players = [];
+      _.players = players;
       
 
-    //-- autoCoinToss() - (private) randomly pick a starting player
-    function autoCoinToss() {
-      /*
-      var x;
-      x ^= 1;
-      console.log(x);
-      x ^= 1;
-      */
-      return Math.floor((Math.random() * 2));
+      this.players = players;
+      this.boxes = $('.boxes > .box');
 
-    }
+      _.rules = new Array();
+      this.rules = new Array();
 
+      _.current = {};
+      _.current.binary = Math.floor((Math.random() * 2));
+      _.current.id = _.current.binary + 1;
+      _.current.element = $( '#player'+_.current.id);
 
-    var splashScreen = false; 
-    var int_activePlayerBinary = autoCoinToss();
-    var int_activePlayerIdNumber = ( int_activePlayerBinary + 1 ); // @teamtreehouse why not use 0 or 1 for player ID?  All around more efficient?
-    var obj_activePlayer = $('#player'+ int_activePlayerIdNumber ).toggleClass('active'); 
+      _.state = 0;  
 
-    function changePlayer() {
-      $(obj_activePlayer).toggleClass('active');
-      int_activePlayerBinary ^= 1;
-      int_activePlayerIdNumber = ( int_activePlayerBinary + 1 );
-      obj_activePlayer = $('#player'+ int_activePlayerIdNumber ).toggleClass('active'); 
-    }
+      this.get = function(name) {
+        return _[name];
+      }
 
+      this.addPlayer = function(player) {
+        _.players.push(player);
+        this.players.push(rule);
+      }
 
-    function validateRow(element, player) {
-      var row = 0;
-      if($(element).hasClass('box-filled-'+player)) {
-          ++row; 
-          if(row === 3) {
-            return true
-          }
-        } else {
-          return false;
-        }
-    }
-
-
-    function validate(e, player) {
-
-      var playerName;
-      var isReset = false;
-
-      var score = {
-
-        isvalid:false,
-        rules:[
-          {
-            type: 'row',
-            counted: {
-              selected: 0,
-              space: 0,
-              block: 0
-            },
-            spaces: 0,
-            blocks: 3,
-            valid: false
-          },
-          {
-            type: 'column',
-            counted:{
-              selected:0,
-              space:0,
-              block: 0
-            },
-            spaces:2,
-            blocks: 0,
-            valid: false
-          },
-          {
-            type: 'diagonal-left',
-            counted:{
-              selected:0,
-              space:0,
-              block: 0
-            },
-            spaces:1,
-            blocks: 0,
-            valid: false
-          },
-          {
-            type:'diagonal-right',
-            counted: {
-              selected:0,
-              space:0,
-              block: 0
-            },
-            spaces:3,
-            blocks: 0,
-            valid:false
-          }
-        ]
+      this.addRule = function(rule) {
+        _.rules.push(rule);
+        this.rules.push(rule);
       }
 
 
+      _.changeplayer = function() {
+        $( _.current.element ).toggleClass('active');
 
-      console.group();
-      var boxes = $(e.currentTarget).find('.box').each(function( index, element ) {
+        _.current.binary ^= 1;
+        _.current.id = ( _.current.binary + 1 );
+        _.current.element = $('#player'+ this.current.id ).toggleClass('active'); 
 
-        console.group(index);
-        for (var i = 0, len = score.rules.length; i < len; i++) {
-            
-          if($(element).hasClass('box-filled-'+player)) {
-
-            if(player == 2) {
-              playerName = 'x';
-            } else {
-              playerName = 'o';
-            }
-
-            ++score.rules[i].counted.selected; 
+      }
 
 
-            if( (score.rules[i].counted.selected === 3) && (score.rules[i].spaces === score.rules[i].counted.space)) {
-              console.log('WIN!');
-              console.groupEnd()
-              console.groupEnd()
-              return false
-            }
-            
-            score.rules[i].counted.space = 0;
-            
-            console.log('%c'+playerName+' rule-'+i+':  '+' selected:'+score.rules[i].counted.selected+', space:'+score.rules[i].counted.space+', spaces:'+score.rules[i].spaces+ ', type:'+score.rules[i].type, 'background: green; color: white; display: block;');
-          } else {
+      _.isDraw = function() {
+        var count = 0;
 
-            ++score.rules[i].counted.space;
-
-            if(element.className.indexOf('box-filled-') > -1) {
-              if(player == 2) {
-                playerName = 'o';
-              } else {
-                playerName = 'x';
-              }
-            } else {
-              playerName = '-';
-            }
-
-            if(score.rules[i].counted.space > score.rules[i].spaces ) {
-              isReset = true;
-              score.rules[i].counted.selected = 0;
-              score.rules[i].counted.space = 0;
-            }
-
-            console.log(playerName+' rule-'+i+':  '+' selected:'+score.rules[i].counted.selected+', space:'+score.rules[i].counted.space+', spaces:'+score.rules[i].spaces+', type:'+score.rules[i].type+ ', reset:'+isReset );
-
-            isReset = false;
-
+        for (var i = 0, len = self.boxes.length; i < len; i++) {
+          if( $(self.boxes[i]).hasClass('box-filled-1') || $(self.boxes[i]).hasClass('box-filled-2') ) {
+            count ++;
           }
+        }
 
-        } 
-        console.groupEnd()
+        if(count === 9) {
+          return true;
+        }
 
+        return false;
+      }
+
+
+      this.validateboard = function() {
+        var valid = false;
+        var i = 0;
+        var test;
+
+        for(var rule of _.rules) {
+          console.groupCollapsed(rule.type);
+          valid = rule.validate( self.boxes , _.current.id);
+          if(valid === true) {
+            break;
+          }
+          ++i;
+          console.groupEnd();
+        }
+        
+        console.log(valid);
+        
+        if(valid === true) {
+          test = 0;
+        } else {
+          test = _.isDraw();
+          console.log();
+        }
+
+      }
+
+
+      $('.boxes').click(function(e) {
+        if(e.target.className.indexOf('box-filled') === -1) {
+          var int_Active = parseInt( $('#players-list > .active').attr('id').slice(-1) );
+          $(e.target).addClass('box-filled-'+int_Active);
+          console.groupCollapsed(_.current.element);
+          self.validateboard();
+          console.groupEnd();
+          _.changeplayer();
+        }
       });
-      console.groupEnd()
 
-      //console.log(score); 
+
+      _.splash = function() {
+        if(_.state === 0) {
+          $('.button').click(function() {
+            $('#start').fadeOut("slow", function(){
+              $("#board").fadeIn("slow");
+              $('#player'+ _.current.id ).toggleClass('active')
+              _.state = _.current.binary;
+            });
+          });
+        } else {
+          $('#start').hide();
+          $("#board").show();
+        }
+      }
+
+      _.splash();
 
     }
 
+    var board = new Board([ new Player('x'), new Player('o') ]);
+    board.addRule( new Rule('row', { space : 1, count : 0, length : 6, increment : 3, total: 2 }) );
+    board.addRule( new Rule('column', { space : 3, count : 0, length : 2, increment : 1, total: 6}) );
+    board.addRule( new Rule('diagonal-right', { space : 4, count : 0, length : 2, increment : 1, total: 8 }) );
+    board.addRule( new Rule('diagonal-left', { space : 2, count : 2, length : 2, increment : 1, start: 2, total: 4 }) );
 
 
-    // ON LOAD 
-    if(splashScreen === true) {
-      $('.button').click(function() {
-        $('#start').fadeOut("slow", function(){
-          $("#board").fadeIn("slow");
-        })
-      });
-    } else {
-      $('#start').hide();
-      $("#board").show();
-    }
+  }(this);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+  var Player = (function(name){ 
+
+    var exports = {
+      name: name,
+    };
     
 
+    var _ = {
+      winner : 0,
+      score : 0,
+    }
+    
+    _.binary = 
 
-    $('.boxes').click(function(e) {
-      
-      console.log();
-      
-      if(e.target.className.indexOf('box-filled') === -1) {
-        var int_Active = parseInt( $('#players-list > .active').attr('id').slice(-1) );
-        $(e.target).addClass('box-filled-'+int_Active);
-        validate(e, int_activePlayerIdNumber);
-        changePlayer();
+    return exports;
+    
+  }(name));
+
+
+  console.log(Player);
+  
+  var test = new Player('x');
+
+
+
+  var Board = (function(){ 
+
+    var exports = {
+      foo: 5,
+      bar: 10
+    };
+    
+    var _ = {
+      players : [],
+    }
+    
+    exports.helloMars = function() {
+      console.log("Hello Mars!");
+    };
+    
+    exports.goodbye = function() {
+      console.log("Goodbye!");
+    };
+    
+    return exports
+    
+  }());
+
+
+
+
+
+
+
+
+    var splashScreen = false;
+
+    function player(name) {
+      this.name = name;
+      this.binary = Math.floor((Math.random() * 2));
+      this.id = this.binary + 1;
+      this.element = $('#player'+ this.id ).toggleClass('active');
+      this.winner = false;
+      this.score = 0;
+    }
+
+    function rule(type) {
+      this.type = type;
+      this.spaces = 0;
+      this.blocks = 3;
+      this.valid = false;
+      this.counted = {
+        selected: 0,
+        space: 0,
+        row: 0,
+        column: 0
       }
+    }
+
+
+
+    var player1 = new player('x');
+    console.log(player1);
+    
+    var player2 = new player('o');
+    console.log(player2);
+    
+    var rule1 = new rule('row');
+    console.log(rule1);
+    
+    var rule2 = new rule('column', 2);
+    console.log(rule2);
+    
+    var rule3 = new rule('diagnol', 1);
+    console.log(rule3);
+    
+    
+    
+
+*/
+
+
+
+
+
+
+/*
+  
+  
+   function RuleRow() {
+      Rule.call(this, 'row');
       
-    });
+      this.validate = function() {
+
+        var board =[1, 1, 2, 1, 2, 0, 0, 0, 0];
+        var c = 0;
+        var s = 0;
+        var reset = 3;
+        var valid = false;
+        var p = 1;
+
+        for(var i = 0; i < board.length; i++) {
+
+          if(c > 3) {
+            c = 0;
+          }
+
+          if(p === board[i]) {
+            s ++;
+          }
+
+          if(c === 3 && s < 3) {
+            s = 0;
+          }
+
+          if(c === 3 && s === 3) {
+            return true;
+          }
+
+          c ++;
+
+        }
+
+        return true;
+
+      }
+
+      this.validate();
+      
+    }
 
 
+
+
+
+  //var board =['1:a:x', '1:b:o', '1:c:o', '2:a:x', '2:b:o', '2:c:-', '3:a:-', '3:b:-', '3:c:-'];
+
+  
+  
+*/
 
   </script>
 </body>
