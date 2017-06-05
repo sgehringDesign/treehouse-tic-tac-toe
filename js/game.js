@@ -309,28 +309,33 @@
 
       $('.box').click(function(e) {
 
-        var valid = false;
-        var isDraw = false;
+        if( $(this).hasClass('box-filled-1') === false && $(this).hasClass('box-filled-2') === false) {
+          
+          var valid = false;
+          var isDraw = false;
+  
+          $(this).addClass( _.current.player.get('active') );
+  
+          isDraw = _.isDraw();
+  
+          if(isDraw === true) {
+            _.winner(true);
+            return;
+          }
+  
+          console.groupCollapsed( _.current.player.name );
+          valid = self.validateboard();
+          console.groupEnd();
+  
+          if(valid === true) {
+            _.winner();
+            return;
+          }
 
-        $(this).addClass( _.current.player.get('active') );
+          _.changePlayer();
 
-        isDraw = _.isDraw();
-
-        if(isDraw === true) {
-          _.winner(true);
-          return;
         }
-
-        console.groupCollapsed( _.current.player.name );
-        valid = self.validateboard();
-        console.groupEnd();
-
-        if(valid === true) {
-          _.winner();
-          return;
-        }
-
-        _.changePlayer();
+        
 
       });
 
