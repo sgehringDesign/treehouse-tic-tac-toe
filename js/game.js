@@ -30,6 +30,7 @@
       _.id = _.binary + 1;
       _.element = '#player'+ _.id;
       _.active = 'box-filled-' + _.id;
+      _.hover = 'box-hover-' + _.id;
       _.win = 'screen-win-';
 
       if(_.id === 1) {
@@ -309,6 +310,8 @@
 
       $('.box').click(function(e) {
 
+        $(this).removeClass( _.current.player.get('hover') );
+
         if( $(this).hasClass('box-filled-1') === false && $(this).hasClass('box-filled-2') === false) {
           
           var valid = false;
@@ -339,6 +342,19 @@
 
       });
 
+
+      $('.box').hover(
+        function() {
+          if( $(this).hasClass('box-filled-1') === false && $(this).hasClass('box-filled-2') === false) {
+            $(this).addClass( _.current.player.get('hover') )
+          }
+        }, 
+        function() {
+          $(this).removeClass( _.current.player.get('hover') );
+        }
+      );
+
+
       $('#btnStart').click(function() {
         $('#start').fadeOut(this.fade, function(){
           $("#board").fadeIn(this.fade);
@@ -354,6 +370,8 @@
         });
          $("#finish").removeClass('screen-win-tie screen-win-one screen-win-two');
       });
+      
+      
 
     }
 
